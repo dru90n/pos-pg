@@ -17,17 +17,35 @@ function showSection(id) {
   document.getElementById(id).classList.remove('hidden');
 }
 
-// ============ 4. Render Terapis Berdasarkan Kategori ============
-function renderTerapis() {
-  const kategori = document.getElementById('kategori').value;
-  const wrapper = document.getElementById('terapis-wrapper');
-  wrapper.innerHTML = '';
+// ============ 4. Tambah Layanan ============
+function tambahLayanan() {
+  const index = document.querySelectorAll('.layanan-item').length;
+  const container = document.createElement('div');
+  container.className = 'layanan-item';
 
+  const kategori = document.createElement('select');
+  kategori.name = `kategori-${index}`;
+  kategori.innerHTML = `<option value="">-- Pilih Kategori --</option>
+    <option value="Paket Standard">Paket Standard</option>
+    <option value="Paket Lengkap">Paket Lengkap</option>`;
+  kategori.onchange = () => renderTerapis(index, kategori.value);
+
+  const wrapper = document.createElement('div');
+  wrapper.id = `terapis-wrapper-${index}`;
+
+  container.appendChild(kategori);
+  container.appendChild(wrapper);
+  document.getElementById('layanan-list').appendChild(container);
+}
+
+function renderTerapis(index, kategori) {
+  const wrapper = document.getElementById(`terapis-wrapper-${index}`);
+  wrapper.innerHTML = '';
   if (terapisMap[kategori]) {
     terapisMap[kategori].forEach(nama => {
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
-      checkbox.name = 'terapis';
+      checkbox.name = `terapis-${index}`;
       checkbox.value = nama;
       const label = document.createElement('label');
       label.appendChild(checkbox);
@@ -38,21 +56,25 @@ function renderTerapis() {
   }
 }
 
-// ============ 5. New Order Submit ============
+// ============ 5. Submit Order ============
 async function submitNewOrder(e) {
   e.preventDefault();
   const nama = document.getElementById('nama').value;
   const ruang = document.getElementById('ruang').value;
-  const kategori = document.getElementById('kategori').value;
-  const terapis = Array.from(document.querySelectorAll('input[name="terapis"]:checked')).map(i => i.value);
   const jam_masuk = new Date().toISOString();
   const tanggal = new Date().toISOString().split('T')[0];
+
+  const layanan = [];
+  document.querySelectorAll('.layanan-item').forEach((item, index) => {
+    const kategori = item.querySelector(`select[name="kategori-${index}"]`).value;
+    const terapis = Array.from(item.querySelectorAll(`input[name="terapis-${index}"]:checked`)).map(i => i.value);
+    if (kategori && terapis.length) layanan.push({ kategori, terapis });
+  });
 
   const { error } = await supabase.from('orders').insert({
     nama_customer: nama,
     ruang,
-    kategori,
-    terapis,
+    layanan,
     jam_masuk,
     tanggal,
     status: 'open'
@@ -63,7 +85,7 @@ async function submitNewOrder(e) {
   } else {
     alert('Order berhasil disimpan!');
     e.target.reset();
-    renderTerapis();
+    document.getElementById('layanan-list').innerHTML = '';
   }
 }
 
@@ -75,14 +97,17 @@ async function cariOrder() {
   const hasil = data.filter(row =>
     row.nama_customer.toLowerCase().includes(q) ||
     row.ruang.toLowerCase().includes(q) ||
-    (row.terapis || []).some(t => t.toLowerCase().includes(q))
+    (row.layanan || []).some(l =>
+      l.terapis.some(t => t.toLowerCase().includes(q)) ||
+      l.kategori.toLowerCase().includes(q)
+    )
   );
 
   const list = document.getElementById('hasil-cari');
   list.innerHTML = '';
   hasil.forEach(row => {
     const li = document.createElement('li');
-    li.textContent = `${row.nama_customer} (${row.kategori}) di ruang ${row.ruang}`;
+    li.textContent = `${row.nama_customer} (${row.layanan.length} layanan) di ruang ${row.ruang}`;
     li.onclick = () => closeOrder(row);
     list.appendChild(li);
   });
@@ -95,13 +120,15 @@ async function closeOrder(order) {
   const selisihMs = jam_keluar - jam_masuk;
   let durasiJam = Math.floor(selisihMs / (1000 * 60 * 30)) / 2;
 
-  const jamTambahan = Math.max(0, durasiJam - 3);
-  const tarif = order.kategori === 'Paket Lengkap' ? 350 : 250;
-  const hargaVoucher = order.kategori === 'Paket Lengkap' ? 1000 : 750;
-  const total = hargaVoucher + Math.floor(jamTambahan) * tarif;
+  let total = 0;
+  (order.layanan || []).forEach(l => {
+    const jamTambahan = Math.max(0, durasiJam - 3);
+    const tarif = l.kategori === 'Paket Lengkap' ? 350 : 250;
+    const hargaVoucher = l.kategori === 'Paket Lengkap' ? 1000 : 750;
+    total += hargaVoucher + Math.floor(jamTambahan) * tarif;
+  });
 
   const metode = prompt(`Durasi: ${durasiJam.toFixed(1)} jam. Total: $${total}\nMasukkan metode pembayaran (Pelunasan / Pending Bill)`);
-
   if (!metode) return;
 
   const { error } = await supabase.from('orders').update({
@@ -131,7 +158,7 @@ async function tarikData() {
   }
 
   const header = table.insertRow();
-  ['Nama', 'Tanggal', 'Jam Masuk', 'Jam Keluar', 'Kategori', 'Terapis', 'Ruang', 'Durasi', 'Total', 'Metode', 'Status'].forEach(text => {
+  ['Nama', 'Tanggal', 'Jam Masuk', 'Jam Keluar', 'Layanan', 'Ruang', 'Durasi', 'Total', 'Metode', 'Status'].forEach(text => {
     const th = document.createElement('th');
     th.textContent = text;
     header.appendChild(th);
@@ -143,8 +170,7 @@ async function tarikData() {
     tr.insertCell().textContent = row.tanggal;
     tr.insertCell().textContent = new Date(row.jam_masuk).toLocaleString();
     tr.insertCell().textContent = row.jam_keluar ? new Date(row.jam_keluar).toLocaleString() : '-';
-    tr.insertCell().textContent = row.kategori;
-    tr.insertCell().textContent = (row.terapis || []).join(', ');
+    tr.insertCell().textContent = (row.layanan || []).map(l => `${l.kategori}: ${l.terapis.join(', ')}`).join(' | ');
     tr.insertCell().textContent = row.ruang;
     tr.insertCell().textContent = row.durasi?.toFixed(1) || '-';
     tr.insertCell().textContent = row.total || '-';
@@ -166,7 +192,7 @@ function exportXLS() {
   document.body.removeChild(a);
 }
 
-// ============ 10. Jalankan Setelah HTML Siap ============
+// ============ 10. Event Init ============
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('kategori').addEventListener('change', renderTerapis);
+  tambahLayanan();
 });
