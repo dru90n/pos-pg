@@ -1,13 +1,15 @@
+// ============ 1. Inisialisasi Supabase ===============
 const SUPABASE_URL = 'https://qcxwhrkegsdrcohlbqon.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjeHdocmtlZ3NkcmNvaGxicW9uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE2MDg1MjMsImV4cCI6MjA2NzE4NDUyM30.lL2Q1EdLKPYEEfzCQcjXKzT-lxZ_e2Be608lXtatBUY';
 const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Terapis statis
+// ============ 2. Data Terapis Per Kategori ============
 const terapisMap = {
   'Paket Standard': ['Ayu', 'Budi', 'Cici'],
   'Paket Lengkap': ['Dedi', 'Ema', 'Fitri']
 };
 
+// ============ 3. Fungsi Navigasi Menu ================
 function showSection(id) {
   ['new', 'close', 'tarik'].forEach(s => {
     document.getElementById(s).classList.add('hidden');
@@ -15,6 +17,7 @@ function showSection(id) {
   document.getElementById(id).classList.remove('hidden');
 }
 
+// ============ 4. Render Terapis Berdasarkan Kategori ============
 function renderTerapis() {
   const kategori = document.getElementById('kategori').value;
   const wrapper = document.getElementById('terapis-wrapper');
@@ -35,6 +38,7 @@ function renderTerapis() {
   }
 }
 
+// ============ 5. New Order Submit ============
 async function submitNewOrder(e) {
   e.preventDefault();
   const nama = document.getElementById('nama').value;
@@ -53,12 +57,13 @@ async function submitNewOrder(e) {
   if (error) {
     alert('Gagal simpan order: ' + error.message);
   } else {
-    alert('Order disimpan!');
+    alert('Order berhasil disimpan!');
     e.target.reset();
     renderTerapis();
   }
 }
 
+// ============ 6. Cari Order Terbuka ============
 async function cariOrder() {
   const q = document.getElementById('cari').value.toLowerCase();
   const { data, error } = await supabase.from('orders').select('*').eq('status', 'open');
@@ -79,6 +84,7 @@ async function cariOrder() {
   });
 }
 
+// ============ 7. Close Order ============
 async function closeOrder(order) {
   const jam_keluar = new Date();
   const jam_masuk = new Date(order.jam_masuk);
@@ -110,6 +116,7 @@ async function closeOrder(order) {
   }
 }
 
+// ============ 8. Tarik & Tampilkan Data ============
 async function tarikData() {
   const { data, error } = await supabase.from('orders').select('*');
   const table = document.getElementById('data-table');
@@ -142,6 +149,7 @@ async function tarikData() {
   });
 }
 
+// ============ 9. Export XLS ============
 function exportXLS() {
   const table = document.getElementById('data-table').outerHTML;
   const blob = new Blob(["\ufeff", table], { type: "application/vnd.ms-excel" });
