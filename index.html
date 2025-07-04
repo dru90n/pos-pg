@@ -4,8 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>POS Pijat Refleksi</title>
-  <link rel="stylesheet" href="style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <h1>POS Pijat Refleksi</h1>
@@ -16,36 +15,35 @@
   </div>
 
   <!-- NEW ORDER -->
-  <section id="new" class="hidden">
-    <h2>New Order</h2>
-    <form onsubmit="submitNewOrder(event)">
-      <input type="text" id="nama" placeholder="Nama Customer" required />
-      <input type="text" id="ruang" placeholder="Ruang" required />
-        <select id="kategori" required>
-        <option value="">--Pilih Kategori--</option>
-        <option value="Paket Standard">Paket Standard</option>
-        <option value="Paket Lengkap">Paket Lengkap</option>
-      </select>
-      <div id="terapis-wrapper"></div>
+  <div id="new">
+    <form id="new-form">
+      <label>Nama Customer:</label>
+      <input type="text" id="nama" required><br>
+
+      <label>Ruang:</label>
+      <input type="text" id="ruang" required><br>
+
+      <div id="layanan-wrapper"></div>
+
+      <button type="button" onclick="tambahLayanan()">Tambah Layanan</button><br><br>
       <button type="submit">Simpan Order</button>
     </form>
-  </section>
+  </div>
 
   <!-- CLOSE ORDER -->
-  <section id="close" class="hidden">
-    <h2>Close Order</h2>
-    <input type="text" id="cari" placeholder="Cari Nama / Terapis / Ruang" oninput="cariOrder()" />
+  <div id="close" class="hidden">
+    <input type="text" id="cari" placeholder="Cari nama customer / ruang / terapis">
+    <button onclick="cariOrder()">Cari</button>
     <ul id="hasil-cari"></ul>
-  </section>
+  </div>
 
   <!-- TARIK DATA -->
-  <section id="tarik" class="hidden">
-    <h2>Tarik Data</h2>
+  <div id="tarik" class="hidden">
     <button onclick="tarikData()">Tampilkan Data</button>
-    <button onclick="exportXLS()">Export XLS</button>
-    <table id="data-table"></table>
-  </section>
+    <button onclick="exportXLS()">Export ke XLS</button>
+    <table border="1" id="data-table"></table>
+  </div>
 
-  <script src="app.js" defer></script>
+  <script src="app.js"></script>
 </body>
 </html>
