@@ -1,7 +1,9 @@
 // ============ 1. Inisialisasi Supabase ===============
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
 const SUPABASE_URL = 'https://qcxwhrkegsdrcohlbqon.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjeHdocmtlZ3NkcmNvaGxicW9uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE2MDg1MjMsImV4cCI6MjA2NzE4NDUyM30.lL2Q1EdLKPYEEfzCQcjXKzT-lxZ_e2Be608lXtatBUY';
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ============ 2. Data Terapis Per Kategori ============
 const terapisMap = {
@@ -195,7 +197,7 @@ async function tarikData() {
   });
 }
 
-// ============ 9. Export ke Excel ============
+// ============ 9. Export XLS ============
 function exportXLS() {
   const table = document.getElementById('data-table').outerHTML;
   const blob = new Blob(["\ufeff", table], { type: "application/vnd.ms-excel" });
@@ -208,7 +210,7 @@ function exportXLS() {
   document.body.removeChild(a);
 }
 
-// ============ 10. Inisialisasi Awal ============
+// ============ 10. Inisialisasi ============
 document.addEventListener('DOMContentLoaded', () => {
   tambahLayanan();
 });
