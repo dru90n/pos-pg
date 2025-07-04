@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>POS Pijat Refleksi</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>POS Pijat Refleksi</h1>
+  <div class="menu">
+    <button onclick="showSection('new')">New Order</button>
+    <button onclick="showSection('close')">Close Order</button>
+    <button onclick="showSection('tarik')">Tarik Data</button>
+  </div>
+
+  <!-- NEW ORDER -->
+  <section id="new" class="hidden">
+    <h2>New Order</h2>
+    <form onsubmit="submitNewOrder(event)">
+      <input type="text" id="nama" placeholder="Nama Customer" required />
+      <input type="text" id="ruang" placeholder="Ruang" required />
+      <select id="kategori" onchange="renderTerapis()" required>
+        <option value="">--Pilih Kategori--</option>
+        <option value="Paket Standard">Paket Standard</option>
+        <option value="Paket Lengkap">Paket Lengkap</option>
+      </select>
+      <div id="terapis-wrapper"></div>
+      <button type="submit">Simpan Order</button>
+    </form>
+  </section>
+
+  <!-- CLOSE ORDER -->
+  <section id="close" class="hidden">
+    <h2>Close Order</h2>
+    <input type="text" id="cari" placeholder="Cari Nama / Terapis / Ruang" oninput="cariOrder()" />
+    <ul id="hasil-cari"></ul>
+  </section>
+
+  <!-- TARIK DATA -->
+  <section id="tarik" class="hidden">
+    <h2>Tarik Data</h2>
+    <button onclick="tarikData()">Tampilkan Data</button>
+    <button onclick="exportXLS()">Export XLS</button>
+    <table id="data-table"></table>
+  </section>
+
+  <script src="app.js"></script>
+</body>
+</html>
