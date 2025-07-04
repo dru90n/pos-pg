@@ -1,7 +1,7 @@
 // ============ 1. Inisialisasi Supabase ===============
 const SUPABASE_URL = 'https://qcxwhrkegsdrcohlbqon.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjeHdocmtlZ3NkcmNvaGxicW9uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE2MDg1MjMsImV4cCI6MjA2NzE4NDUyM30.lL2Q1EdLKPYEEfzCQcjXKzT-lxZ_e2Be608lXtatBUY';
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ============ 2. Data Terapis Per Kategori ============
 const terapisMap = {
@@ -45,12 +45,16 @@ async function submitNewOrder(e) {
   const ruang = document.getElementById('ruang').value;
   const kategori = document.getElementById('kategori').value;
   const terapis = Array.from(document.querySelectorAll('input[name="terapis"]:checked')).map(i => i.value);
+  const jam_masuk = new Date().toISOString();
+  const tanggal = new Date().toISOString().split('T')[0];
 
   const { error } = await supabase.from('orders').insert({
     nama_customer: nama,
     ruang,
     kategori,
     terapis,
+    jam_masuk,
+    tanggal,
     status: 'open'
   });
 
@@ -101,7 +105,7 @@ async function closeOrder(order) {
   if (!metode) return;
 
   const { error } = await supabase.from('orders').update({
-    jam_keluar,
+    jam_keluar: jam_keluar.toISOString(),
     durasi: durasiJam,
     total,
     metode_pembayaran: metode,
@@ -137,12 +141,12 @@ async function tarikData() {
     const tr = table.insertRow();
     tr.insertCell().textContent = row.nama_customer;
     tr.insertCell().textContent = row.tanggal;
-    tr.insertCell().textContent = row.jam_masuk;
-    tr.insertCell().textContent = row.jam_keluar || '-';
+    tr.insertCell().textContent = new Date(row.jam_masuk).toLocaleString();
+    tr.insertCell().textContent = row.jam_keluar ? new Date(row.jam_keluar).toLocaleString() : '-';
     tr.insertCell().textContent = row.kategori;
     tr.insertCell().textContent = (row.terapis || []).join(', ');
     tr.insertCell().textContent = row.ruang;
-    tr.insertCell().textContent = row.durasi || '-';
+    tr.insertCell().textContent = row.durasi?.toFixed(1) || '-';
     tr.insertCell().textContent = row.total || '-';
     tr.insertCell().textContent = row.metode_pembayaran || '-';
     tr.insertCell().textContent = row.status;
@@ -161,3 +165,8 @@ function exportXLS() {
   a.click();
   document.body.removeChild(a);
 }
+
+// ============ 10. Jalankan Setelah HTML Siap ============
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('kategori').addEventListener('change', renderTerapis);
+});
